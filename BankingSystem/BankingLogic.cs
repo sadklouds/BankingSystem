@@ -13,23 +13,15 @@ namespace BankingSystem
         
 
         List<Admin> admins = new List<Admin>();
-        
-
-        //admins.
-
-
+       
 
         public void LoadBankData()
         {
-            Admin admin1 = new Admin("Reece", "Lewis", "Nonya 22 Lane", "123", "123", true);
+            Admin admin1 = new Admin("Reece", "Lewis", "Nonya 22 Lane", "19116884", "123", true);
             admins.Add(admin1);
-            Admin admin2 = new Admin("God", "Grid", "Who knows", "24354", "123", true);
+            Admin admin2 = new Admin("God", "Grid", "Who knows", "111", "111", true);
             admins.Add(admin2);
         }
-
-
-        // admin2.LastName = "Blue";
-
 
         public void LoginMenu()
         {
@@ -37,7 +29,9 @@ namespace BankingSystem
             Console.WriteLine("Welcome to the Lucky 38 Bank System");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("1: Admin Login");
-            Console.WriteLine("2: Quit the banking system");
+            Console.WriteLine("2: Display admins");
+            Console.WriteLine("3: Quit the banking system");
+
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             bool exit = false;
             do
@@ -46,18 +40,19 @@ namespace BankingSystem
                 switch (input)
                 {
                     case "1":
-                        Console.WriteLine("Please enter admin username");
-                        string  a = Console.ReadLine();
-                        Console.WriteLine("Please enter admin username");
-                        string b = Console.ReadLine();
-
-                        AdminOptions(ref a, ref b);
-                       
+                        AdminLogin();
                         break;
                     case "2":
+                        Console.WriteLine("Displaying admins");
+                        DisplayAdminDetails();
+                        break;
+
+                    case "3":
                         Console.WriteLine("Exiting Bank break");
                         exit = true;
                         break;
+
+                   
                 }
 
             } while (exit != true);
@@ -65,39 +60,81 @@ namespace BankingSystem
         }
 
 
-        public void AdminOptions(ref string username, ref string password)
-            {
+        public void AdminLogin()
+        {
+            Console.WriteLine("Please enter admin username: ");
+            string username = Console.ReadLine();
+            Console.WriteLine("Please enter admin password: ");
+            string password = Console.ReadLine();
             SearchAdminByUserName(ref username);
-            
-        
+
+            string foundAdmin = SearchAdminByUserName(ref username);
+            if (foundAdmin != null)
+            {
+                for (int i = 0; i < admins.Count; i++)
+                {
+                    if (admins[i].Password == password)
+                    {
+                        string adminFirstName = admins[i].FirstName;
+                        string adminLastName = admins[i].LastName;
+                        Console.WriteLine($"\nlogin successful\n");
+                        AdminOptions(ref username, ref adminFirstName, ref adminLastName);
+                        //adminName = admins[i].FirstName;
+                        //return foundAdmin;
+                        break;
+                    }
+                    else if (admins[i].Password != password)
+                    {
+                        Console.WriteLine("Login Failed");
+                        LoginMenu();
+                    }
+
+                }
             }
 
-        public void SearchAdminByUserName(ref string username)
+        }
+
+        public void AdminOptions(ref string username, ref string adminFirstName, ref string adminLastName)
         {
-            bool foundAdmin;
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine($"Welcome Admin {adminFirstName} {adminLastName} here are your options");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("1: Transfer Money");
+            Console.WriteLine("2: Quit the banking system");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
+        }
+
+        public string SearchAdminByUserName(ref string username)
+        {
+           string foundAdmin = null;
             for (int i = 0; i < admins.Count; i++)
             {
                 if (admins[i].UserName == username)
                 {
-                    foundAdmin = true;
-                    Console.WriteLine($"{username} ");
+                    foundAdmin = username;
+                   
                     break;
-
                 }
-                if (admins[i].UserName != username )
+                if (foundAdmin == null )
                 {
-                    foundAdmin=false;
-                    Console.WriteLine($"Admin username {username} does not exist");
-                    break;
+                  foundAdmin = null;
+                  Console.WriteLine($"Admin username '{username}' does not exist");
+                  break;
                     
                 }
+            
             }
+            return foundAdmin;
         }
 
-        public void AdminMainOptions()
+        public void DisplayAdminDetails()
         {
-            Console.WriteLine($"Welcome ");
+            foreach (Admin admin in admins)
+               admin.DisplayAdminDetails();
         }
+
 
 
     }

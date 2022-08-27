@@ -30,9 +30,10 @@ namespace BankingSystem.Users
             AdminRights = adminRights;
         }
 
-        public void DisplayManagerDetails()
+        public void DisplayAdminDetails()
         {
-            Console.WriteLine($"\nFirst name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t\t{Address}\nUsername: \t{UserName}\nPassword: \t£{Password}\nAdmin rights: \t{AdminRights}");
+            
+            Console.WriteLine($"\nFirst name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nUsername: \t{UserName}\nPassword: \t{Password}\nAdmin rights: \t{AdminRights}");
         }
     }
 

@@ -10,7 +10,6 @@ BankingLogic bankingLogic = new BankingLogic();
 //Admin admin1 = new Admin("Reece", "Lewis", "Nonya 22 Lane", "19116884", "123", true);
 
 bankingLogic.LoadBankData();
-
 bankingLogic.LoginMenu();
 
 
