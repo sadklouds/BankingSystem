@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BankingSystem.Users
+namespace BankingSystem
 {
-    internal class Customer
+    public enum AccountType
     {
+        Classic,
+        Savings,
+        Student
     }
 }
