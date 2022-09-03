@@ -13,7 +13,19 @@ namespace BankingSystem.Users
         public string LastName { get; set; }
         public string Address { get; set; }
         public string AccountNo { get;}
-        public decimal Balance { get; set; }
+        public decimal Balance
+        {
+            get
+            {
+                decimal balance = 0;
+                foreach (var item in allTransactions)
+                {
+                    balance += item.Amount;
+                }
+
+                return balance;
+            }
+        }
         public AccountType AccountType { get; private set; }
 
         private static int accountNumberSeed = 1234567890;
@@ -29,39 +41,77 @@ namespace BankingSystem.Users
             Address = address;
             AccountNo = accountNumberSeed.ToString();
             accountNumberSeed++; ;
-            Balance = initialBalance;
+            MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
             AccountType = accountType;
         }
 
-        public decimal Deposit(decimal amount)
-        {
-            if(amount < 0)
-            {
-                Console.WriteLine("\nCannot not deposit negative funds");
-                return 0;
-            }
-            else
-            {
-                Console.WriteLine($"\n{amount} has been added to balance");
-                return Balance += amount;
-            }     
-        }
 
         public void MakeDeposit(decimal amount, DateTime date, string note)
         {
+            try
+            {
+                if (amount < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(amount));
+                }
+                var deposit = new Transaction(amount, date, note);
+                allTransactions.Add(deposit);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("\nException caught trying to deposit negative funds, must be positive");
+                //Console.WriteLine(e.ToString());
+            }
         }
 
         public void MakeWithdrawal(decimal amount, DateTime date, string note)
         {
+            try
+            {
+                if (amount <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(amount), "Amount of withdrawal must be positive");
+                }
+                if (Balance - amount < 0)
+                {
+                    throw new InvalidOperationException("Not sufficient funds for this withdrawal");
+                }
+                var withdrawal = new Transaction(-amount, date, note);
+                allTransactions.Add(withdrawal);
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("\nException caught trying to overdraw (insufficient funds)");
+                //Console.WriteLine(e.ToString());
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("\nException caught trying to draw negative funds, amount must be positive");
+                //Console.WriteLine(e.ToString());
+            }
         }
 
+        public string GetAccountHistory()
+        {
+            var report = new System.Text.StringBuilder();
 
+            decimal balance = 0;
+            report.AppendLine("Date\t\tAmount\tBalance\tNote");
+            foreach (var item in allTransactions)
+            {
+                balance += item.Amount;
+                report.AppendLine($"{item.Date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Notes}");
+            }
 
-
+            return report.ToString();
+        }
 
         public void BankAccountDetails(BankAccount bankAccount)
         {
-            Console.WriteLine($"\nFirst name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccountType: \t{AccountType}");
+            Console.WriteLine("\nBank Accounts Details");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine($"First name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccountType: \t{AccountType}");
+            
         }
 
         public void customerOperationsMenu(string accountNo,  Admin foundAdmin, BankAccount bankAccount)
@@ -74,29 +124,52 @@ namespace BankingSystem.Users
             Console.WriteLine("2: Withdraw Money");
             Console.WriteLine("3: Check Balance");
             Console.WriteLine("4: View Bank Account Details");
-            Console.WriteLine("5: Exit");
+            Console.WriteLine("5: View Bank Account Transactions");
+            Console.WriteLine("6: Exit");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             
             var exit = false;
             do
             {
-                Console.WriteLine("please choose an option");
+                Console.Write("\nplease choose an option: ");
                 string input = Console.ReadLine();
                 if (input == "1")
                 {
-                    Console.WriteLine("please input desired amount");
-                    decimal amount = Convert.ToDecimal(Console.ReadLine());
-                    bankAccount.Deposit(amount);
-                    //deposit(amount);
-                    customerOperationsMenu( accountNo, foundAdmin, bankAccount);
+                    Console.Write("please input desired amount to be deposited: ");
+                    string checkAmount = Console.ReadLine();
+                    decimal amount;
+                    var date = DateTime.Now;
+                    if (Decimal.TryParse(checkAmount, out amount))
+                    {
+                        Console.Write("Leave a note for transaction: ");
+                        string note = Console.ReadLine();
+                        bankAccount.MakeDeposit(amount, date, note);
+                    }
+                    else
+                        Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
+                    
                 }
                 else if (input == "2")
                 {
+                    
+                        Console.Write("please input desired amount to be withdrawn: ");
+                        string checkAmount = Console.ReadLine();
+                        decimal amount;
+                        var date = DateTime.Now;
+                        if (Decimal.TryParse(checkAmount, out amount))
+                        {
 
+                            Console.Write("Leave a note for transaction: ");
+                            string note = Console.ReadLine();
+                            bankAccount.MakeWithdrawal(amount, date, note);
+                        }
+                        else
+                            Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
+                    
                 }
                 else if (input == "3")
                 {
-                    Console.WriteLine($"\nBank Account Details");
+                    Console.WriteLine($"\nCheck Account Balance");
                     Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
                     customerOperationsMenu(accountNo, foundAdmin, bankAccount);
@@ -107,6 +180,13 @@ namespace BankingSystem.Users
                     customerOperationsMenu(accountNo, foundAdmin, bankAccount);
                 }
                 else if (input == "5")
+                {
+                    Console.WriteLine("\nAccount Transactions");
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.WriteLine(bankAccount.GetAccountHistory());
+                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
+                }
+                else if (input == "6")
                 {
                     exit = true;
 
