@@ -11,9 +11,7 @@ namespace BankingSystem
     public class BankingLogic
     {
          List<Admin> admins = new List<Admin>();
-         List<Customer> customers = new List<Customer>();
-
-        //Customer customerCall = new Customer("Blank", "Blank", "Blank",  7800, AccountType.Classic);
+         List<BankAccount> accounts = new List<BankAccount>();
 
         public void LoadBankData()
         {
@@ -22,11 +20,9 @@ namespace BankingSystem
             var admin2 = new Admin("God", "Grid", "Who knows", "111", "111", true);
             admins.Add(admin2);
 
-            var customer1 = new Customer("Ps1", "Haggrid", "Nonya",  7800, AccountType.Classic);
-            customers.Add(customer1);
+            var account1 = new BankAccount("Ps1", "Haggrid", "Nonya",  7800, AccountType.Classic);
+            accounts.Add(account1);
             
-
-
         }
 
         public void LoginMenu()
@@ -51,8 +47,6 @@ namespace BankingSystem
                         Console.WriteLine("Exiting Bank");
                         exit = true;
                         break;
-
-                   
                 }
 
             } while (exit != true);
@@ -94,7 +88,6 @@ namespace BankingSystem
         public Admin SearchAdminByUserName(string username)
         {
             var foundAdmin = admins.Find(oAdmin => oAdmin.UserName == (username));
-            
             if (foundAdmin == null)
             {
                 Console.WriteLine($"\nAdmin username '{username}' cannot be found\n");
@@ -102,19 +95,14 @@ namespace BankingSystem
             return foundAdmin;
         }
 
-        public Customer SearchCustomerByAccountNo(string accountNo)
+        public BankAccount SearchBankAccountByAccountNo(string accountNo)
         {
-            Customer foundCustomer = customers.Find(oCustomer => oCustomer.AccountNo == (accountNo));
-            if (foundCustomer != null)
+            BankAccount foundAccount = accounts.Find(oAccount => oAccount.AccountNo == (accountNo));
+            if (foundAccount == null)
             {
-               
-                Console.WriteLine($"{accountNo} found");
+                Console.WriteLine($"\nBank Account number '{accountNo}' cannot be found\n");
             }
-            if (foundCustomer == null)
-            {
-                Console.WriteLine($"\nCustomer Account number '{accountNo}' cannot be found\n");
-            }
-            return foundCustomer;
+            return foundAccount;
         }
 
 
@@ -138,9 +126,9 @@ namespace BankingSystem
                 {
                     Console.WriteLine("Please enter a customer account number");
                     string accountNo = Console.ReadLine();
-                    var customerAccount = SearchCustomerByAccountNo(accountNo);
-                    if (customerAccount != null)
-                        customerAccount.customerOperationsMenu( accountNo, foundAdmin, customerAccount);
+                    var bankAccount = SearchBankAccountByAccountNo(accountNo);
+                    if (bankAccount != null)
+                        bankAccount.customerOperationsMenu( accountNo, foundAdmin, bankAccount);
                     else
                     {
                         AdminOptions( username);
@@ -149,8 +137,8 @@ namespace BankingSystem
                 else if (input == "2")
                 {
                     string accountNo = "1234567890";
-                    var customerAccount = SearchCustomerByAccountNo(accountNo);
-                    AllCustomerDetails(customerAccount);
+                    var bankAccount = SearchBankAccountByAccountNo(accountNo);
+                    AllBankAccountDetails(bankAccount);
 
 
                     AdminOptions(username);
@@ -168,13 +156,13 @@ namespace BankingSystem
 
 
 
-        public void AllCustomerDetails(Customer customerAccount)
+        public void AllBankAccountDetails(BankAccount bankAccount)
         {
             Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("Customer Accounts");
-            foreach (Customer customers in customers)
-                Console.WriteLine($"\nFirst name: \t{customerAccount.FirstName} \nLast name: \t{customerAccount.LastName}\nAddress: \t{customerAccount.Address}\nAccountNo: \t{customerAccount.AccountNo}\nBalance: \t{customerAccount.Balance}\nAccountType: \t{customerAccount.AccountType}");
+            foreach (BankAccount accounts in accounts)
+                Console.WriteLine($"\nFirst name: \t{bankAccount.FirstName} \nLast name: \t{bankAccount.LastName}\nAddress: \t{bankAccount.Address}\nAccountNo: \t{bankAccount.AccountNo}\nBalance: \t{bankAccount.Balance}\nAccountType: \t{bankAccount.AccountType}");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         }
 

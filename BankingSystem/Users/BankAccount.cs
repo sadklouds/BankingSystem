@@ -7,7 +7,7 @@ using BankingSystem;
 
 namespace BankingSystem.Users
 {
-    public class Customer
+    public class BankAccount
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -20,7 +20,9 @@ namespace BankingSystem.Users
 
         BankingLogic bankingLogic = new BankingLogic();
 
-        public Customer(string firstName, string lastName, string address, decimal initialBalance, AccountType accountType)
+        private List<Transaction> allTransactions = new List<Transaction>();
+
+        public BankAccount(string firstName, string lastName, string address, decimal initialBalance, AccountType accountType)
         {
             FirstName = firstName;
             LastName = lastName;
@@ -45,28 +47,33 @@ namespace BankingSystem.Users
             }     
         }
 
-        decimal getBalance()
+        public void MakeDeposit(decimal amount, DateTime date, string note)
         {
-            return Balance;
         }
 
-       
+        public void MakeWithdrawal(decimal amount, DateTime date, string note)
+        {
+        }
 
-        public void customerDetails(Customer customerAccount)
+
+
+
+
+        public void BankAccountDetails(BankAccount bankAccount)
         {
             Console.WriteLine($"\nFirst name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccountType: \t{AccountType}");
         }
 
-        public void customerOperationsMenu(string accountNo,  Admin foundAdmin, Customer customerAccount)
+        public void customerOperationsMenu(string accountNo,  Admin foundAdmin, BankAccount bankAccount)
         {
             
             Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            Console.WriteLine($"admin '{foundAdmin.FirstName} {foundAdmin.LastName}' customer '{customerAccount.AccountNo}' operations menu");
+            Console.WriteLine($"admin '{foundAdmin.FirstName} {foundAdmin.LastName}' Account: '{bankAccount.AccountNo}' operations menu");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("1: Deposit Money");
             Console.WriteLine("2: Withdraw Money");
             Console.WriteLine("3: Check Balance");
-            Console.WriteLine("4: View Customer Details");
+            Console.WriteLine("4: View Bank Account Details");
             Console.WriteLine("5: Exit");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             
@@ -79,9 +86,9 @@ namespace BankingSystem.Users
                 {
                     Console.WriteLine("please input desired amount");
                     decimal amount = Convert.ToDecimal(Console.ReadLine());
-                    customerAccount.Deposit(amount);
+                    bankAccount.Deposit(amount);
                     //deposit(amount);
-                    customerOperationsMenu( accountNo, foundAdmin, customerAccount);
+                    customerOperationsMenu( accountNo, foundAdmin, bankAccount);
                 }
                 else if (input == "2")
                 {
@@ -89,13 +96,15 @@ namespace BankingSystem.Users
                 }
                 else if (input == "3")
                 {
-                    Console.WriteLine($"\nCustomer: {customerAccount.FirstName} {customerAccount.LastName}\nBalance: £{customerAccount.getBalance()}");
-                    customerOperationsMenu(accountNo, foundAdmin, customerAccount);
+                    Console.WriteLine($"\nBank Account Details");
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
+                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
                 }
                 else if (input == "4")
                 {
-                    customerDetails(customerAccount);
-                    customerOperationsMenu(accountNo, foundAdmin, customerAccount);
+                    BankAccountDetails(bankAccount);
+                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
                 }
                 else if (input == "5")
                 {
