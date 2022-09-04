@@ -17,31 +17,33 @@ namespace BankingSystem
         {
             var admin1 = new Admin("Grumble", "Test", "Nonya 22 Lane", "19116884", "111", true);
             admins.Add(admin1);
-            var admin2 = new Admin("God", "Grid", "Who knows", "111", "111", true);
+            var admin2 = new Admin("God", "Grid", "Who knows", "111", "111", false);
             admins.Add(admin2);
 
             try
             {
-                var account1 = new BankAccount("Test", "Test", "Nonya", 0, AccountType.Classic);
+                var account1 = new ClassicAccount("Test", "Test", "Nonya", 0);
                 accounts.Add(account1);
 
-                var account2 = new BankAccount("Kloud", "Shepard", "Nonya", 100, AccountType.Classic);
+                var account2 = new StudentAccount("Kloud", "Shepard", "Nonya", 100);
                 accounts.Add(account2);
+                
 
-            } catch (ArgumentOutOfRangeException e)
+            }
+            catch (ArgumentOutOfRangeException e)
             {
                 Console.WriteLine("\n Exception caught creating account with negative balance\n");
                 Console.WriteLine(e.ToString());
                 return;
             }
-            
+
         }
 
         public void TransferFunds()
         {
             Console.Write("Please enter sender account no: ");
             string senderAccountNo = Console.ReadLine();
-            BankAccount foundSenderAccount = SearchBankAccountSenderByAccountNo(senderAccountNo);
+            BankAccount foundSenderAccount = SearchSenderByAccountNo(senderAccountNo);
             if (foundSenderAccount != null)
             {
                 Console.Write("please input desired amount to be Withdrawn: ");
@@ -53,50 +55,52 @@ namespace BankingSystem
                     Console.Write("Leave a note for transaction: ");
                     string note = Console.ReadLine();
                     foundSenderAccount.MakeWithdrawal(amount, date, note);
-
-                    Console.Write("Please enter reciver account no: ");
-                    string accountNo = Console.ReadLine();
-                    BankAccount foundAccount = SearchBankAccountByAccountNo(accountNo);
-                    if (foundAccount != null)
+                    if (foundSenderAccount.Balance - amount < foundSenderAccount.OverdraftLimit() || amount < 0)
                     {
-                        foundAccount.MakeDeposit(amount, date, note);
+                        Console.WriteLine("\n Will be over overdraw limit");
+                    }
+                    else if (foundSenderAccount.Balance - amount > foundSenderAccount.OverdraftLimit())
+                    {
+                        Console.Write("Please enter reciver account no: ");
+                        string accountNo = Console.ReadLine();
+                        BankAccount foundAccount = SearchBankAccountByAccountNo(accountNo);
+                        if (foundAccount != null)
+                        {
+
+                            foundAccount.MakeDeposit(amount, date, note);
+                        }
                     }
                 }
                 else
                     Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
             }
-           
-            
-                //Console.Write("please input desired amount to be deposited: ");
-                //string checkAmount = Console.ReadLine();
-                //decimal amount;
-                //var date = DateTime.Now;
-                //if (Decimal.TryParse(checkAmount, out amount))
-                //{
-                //    Console.Write("Leave a note for transaction: ");
-                //     string note = Console.ReadLine();
-                //     foundAccount.MakeDeposit(amount, date, note);
-                //}
-                //else
-                //    Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
 
-                //}
+
+
         }
 
-        public void LoginMenu()
+        public string LoginMenu()
         {
-            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("Welcome to the Lucky 38 Bank System");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("1: Admin Login");
             Console.WriteLine("2: Quit the banking system");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.Write("Please select an option: ");
+            string option = Console.ReadLine();
+            return option;
+        }
+
+
+        public void RunLoginMenu()
+        {
             bool exit = false;
             do
             {
-                Console.Write("Please select and option: ");
-                string input = Console.ReadLine();
-                switch (input)
+                //Console.Write("Please select and option: ");
+                string option = LoginMenu();
+                switch (option)
                 {
                     case "1":
                         AdminLogin();
@@ -111,6 +115,7 @@ namespace BankingSystem
             } while (exit != true);
 
         }
+
 
 
         public void AdminLogin()
@@ -129,9 +134,9 @@ namespace BankingSystem
                 {
                     if (foundAdmin.Password == password)
                     {
-                        Console.WriteLine($"\nlogin successful\n");
+                        Console.WriteLine($"\nlogin successful");
                         login = true;
-                        AdminOptions(username);
+                        RunAdminOptions(username);
                     }
                     if (foundAdmin.Password != password)
                     {
@@ -140,9 +145,11 @@ namespace BankingSystem
                     }
                 }
             } while (login != true);
-             
+
         }
 
+
+        //user search functions 
         public Admin SearchAdminByUserName(string username)
         {
             var foundAdmin = admins.Find(oAdmin => oAdmin.UserName == (username));
@@ -152,6 +159,7 @@ namespace BankingSystem
             }
             return foundAdmin;
         }
+
 
         public BankAccount SearchBankAccountByAccountNo(string accountNo)
         {
@@ -163,7 +171,8 @@ namespace BankingSystem
             return foundAccount;
         }
 
-        public BankAccount SearchBankAccountSenderByAccountNo(string senderAccountNo)
+
+        public BankAccount SearchSenderByAccountNo(string senderAccountNo)
         {
             BankAccount foundSenderAccount = accounts.Find(oAccount => oAccount.AccountNo == (senderAccountNo));
             if (foundSenderAccount == null)
@@ -174,73 +183,116 @@ namespace BankingSystem
         }
 
 
-        public void AdminOptions(string username)
+        public void DeleteBankAccount(Admin foundAdmin)
         {
-            var foundAdmin = (Admin)SearchAdminByUserName(username);
+            if (foundAdmin.AdminRights == true)
+            {
+                Console.Write("Enter account number of customer to delete: ");
+                string accountNo = Console.ReadLine();
+                var bankAccount = SearchBankAccountByAccountNo(accountNo);
+                if (bankAccount != null)
+                {
+                    Console.WriteLine($"Bank account {bankAccount} has been deleted.");
+                    accounts.Remove(bankAccount);
+                }
+            }
+            else
+            {
+                Console.WriteLine(" You do not have permission");
+            }
+
+        }
+
+
+        public string AdminOptions(string username)
+        {
+            var foundAdmin = SearchAdminByUserName(username);
             Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine($"Welcome Admin '{foundAdmin.FirstName} {foundAdmin.LastName}' here are your options");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("1: Customer Account Operations");
             Console.WriteLine("2: Display all customer account details");
             Console.WriteLine("3: Transfer funds between accounts");
-            Console.WriteLine("4: Quit the banking system");
+            Console.WriteLine("4: View All Admins");
+            Console.WriteLine("5: Edit admin own name and address");
+            Console.WriteLine("6: Delete BankAccount");
+            Console.WriteLine("0: Logout");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            bool exit = false;
+            Console.Write("Please select an option: ");
+            string option = Console.ReadLine();
+            return option;
+
+        }
+
+
+        public void RunAdminOptions(string username)
+        {
+            var foundAdmin = SearchAdminByUserName(username);
+            var exit = 1;
             do
             {
-                Console.Write("\nPlease select an option: ");
-                string input = Console.ReadLine();
-                if (input == "1")
+                string option = AdminOptions(username);
+                if (option == "1")
                 {
                     Console.Write("Please enter a customer account number: ");
                     string accountNo = Console.ReadLine();
                     var bankAccount = SearchBankAccountByAccountNo(accountNo);
                     if (bankAccount != null)
-                        bankAccount.customerOperationsMenu( accountNo, foundAdmin, bankAccount);
-                    else
-                    {
-                        AdminOptions(username);
-                    }
+                        bankAccount.RunAccountOptions(accountNo, foundAdmin, bankAccount);
                 }
-                else if (input == "2")
+                else if (option == "2")
                 {
-                    string accountNo = "1234567890";
-                    var bankAccount = SearchBankAccountByAccountNo(accountNo);
-                    AllBankAccountDetails(bankAccount);
-                    AdminOptions(username);
+                    AllBankAccountDetails();
                 }
-                else if (input == "3")
+                else if (option == "3")
                 {
                     TransferFunds();
                 }
-                else if (input == "4")
+                else if (option == "4")
                 {
-                    exit = true;
-                    Console.WriteLine("Exiting Banking System");
+                    AllDisplayAdminDetails();
                 }
-            } while (exit != true);
+                else if (option == "5")
+                {
+                    foundAdmin.EditAdminDetails(foundAdmin);
+                }
+                else if (option == "6")
+                {
+                    DeleteBankAccount(foundAdmin);
+                }
+                else if (option == "0")
+                {
+                    exit = 0;
+                    Console.WriteLine("\nLoging out the Banking System");
+                }
+
+            } while (exit == 1);
         }
 
+        
 
-
-        public void AllBankAccountDetails(BankAccount bankAccount)
+        public void AllBankAccountDetails()
         {
             Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("Customer Accounts");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             foreach (BankAccount accounts in accounts)
-                Console.WriteLine($"\nFirst name: \t{accounts.FirstName} \nLast name: \t{accounts.LastName}\nAddress: \t{accounts.Address}\nAccountNo: \t{accounts.AccountNo}\nBalance: \t{accounts.Balance}\nAccountType: \t{accounts.AccountType}");
+                Console.WriteLine($"\nFirst name: \t{accounts.FirstName} \nLast name: \t{accounts.LastName}\nAddress: \t{accounts.Address}\nAccountNo: \t{accounts.AccountNo}\nBalance: \t{accounts.Balance}\nAccount Type: \t{accounts.AccountType()}\nIn Overdraft: \t{accounts.OverdraftTrue()}");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         }
-       
 
-        public void DisplayAdminDetails()
+
+        public void AllDisplayAdminDetails()
         {
+            Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("Admin Accounts");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             foreach (Admin admin in admins)
-               admin.DisplayAdminDetails();
+                Console.WriteLine($"\nFirst name: \t{admin.FirstName} \nLast name: \t{admin.LastName}\nAddress: \t{admin.Address}\nUsername: \t{admin.UserName}\nPassword: \t{admin.Password}\nAdmin rights: \t{admin.AdminRights}");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
         }
-
-
 
     }
 }

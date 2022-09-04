@@ -7,13 +7,15 @@ using BankingSystem;
 
 namespace BankingSystem.Users
 {
-    public class BankAccount
+    public abstract class BankAccount
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Address { get; set; }
+        public string FirstName { get; protected set; }
+        public string LastName { get; protected set; }
+        public string Address { get; protected set; }
         public string AccountNo { get;}
+
         public decimal Balance
+
         {
             get
             {
@@ -26,7 +28,7 @@ namespace BankingSystem.Users
                 return balance;
             }
         }
-        public AccountType AccountType { get; private set; }
+       
 
         private static int accountNumberSeed = 1234567890;
 
@@ -34,7 +36,7 @@ namespace BankingSystem.Users
 
         private List<Transaction> allTransactions = new List<Transaction>();
 
-        public BankAccount(string firstName, string lastName, string address, decimal initialBalance, AccountType accountType)
+        public BankAccount(string firstName, string lastName, string address, decimal initialBalance)
         {
             FirstName = firstName;
             LastName = lastName;
@@ -42,9 +44,32 @@ namespace BankingSystem.Users
             AccountNo = accountNumberSeed.ToString();
             accountNumberSeed++; ;
             MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
-            AccountType = accountType;
+            
         }
 
+        public virtual string AccountType()
+        {
+            string accountType = "";
+            return accountType;
+        }
+
+        public virtual decimal OverdraftLimit()
+        {
+            
+            decimal overdraft = 0m;
+            return overdraft;
+        }
+
+        public virtual void PayableIntrest()
+        {
+            
+        }
+
+        public bool OverdraftTrue()
+        {
+            bool inOverDraft = Balance < 0 ? true: false;
+            return inOverDraft;
+        }
 
         public void MakeDeposit(decimal amount, DateTime date, string note)
         {
@@ -66,22 +91,30 @@ namespace BankingSystem.Users
 
         public void MakeWithdrawal(decimal amount, DateTime date, string note)
         {
+            
             try
             {
                 if (amount <= 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(amount), "Amount of withdrawal must be positive");
                 }
-                if (Balance - amount < 0)
+                //if (Balance - amount < 0)
+                //{
+                //    throw new InvalidOperationException("Not sufficient funds for this withdrawal");
+                //}
+                if (Balance - amount < OverdraftLimit() )
                 {
-                    throw new InvalidOperationException("Not sufficient funds for this withdrawal");
+                    throw new InvalidOperationException("Not sufficient funds for this withdrawal exceeds overdraft limit");
                 }
-                var withdrawal = new Transaction(-amount, date, note);
-                allTransactions.Add(withdrawal);
+                if (Balance - amount > OverdraftLimit() )
+                {
+                    var withdrawal = new Transaction(-amount, date, note);
+                    allTransactions.Add(withdrawal);
+                }
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("\nException caught trying to overdraw (insufficient funds)");
+                Console.WriteLine("\nNot sufficient funds for this withdrawal exceeds overdraft limit");
                 //Console.WriteLine(e.ToString());
             }
             catch (ArgumentOutOfRangeException e)
@@ -90,6 +123,7 @@ namespace BankingSystem.Users
                 //Console.WriteLine(e.ToString());
             }
         }
+
 
         public string GetAccountHistory()
         {
@@ -110,13 +144,14 @@ namespace BankingSystem.Users
         {
             Console.WriteLine("\nBank Accounts Details");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            Console.WriteLine($"First name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccountType: \t{AccountType}");
+            Console.WriteLine($"First name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccount Type: \t{AccountType()}\nInOverdraft: \t{OverdraftTrue()}");
             
         }
 
-        public void customerOperationsMenu(string accountNo,  Admin foundAdmin, BankAccount bankAccount)
+
+        public string CustomerOperationsMenu(string accountNo, Admin foundAdmin, BankAccount bankAccount)
         {
-            
+
             Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine($"admin '{foundAdmin.FirstName} {foundAdmin.LastName}' Account: '{bankAccount.AccountNo}' operations menu");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -125,33 +160,38 @@ namespace BankingSystem.Users
             Console.WriteLine("3: Check Balance");
             Console.WriteLine("4: View Bank Account Details");
             Console.WriteLine("5: View Bank Account Transactions");
-            Console.WriteLine("6: Exit");
+            Console.WriteLine("6: Edit Customer details");
+            Console.WriteLine("7: Return ");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            
-            var exit = false;
-            do
+            Console.Write("please choose an option: ");
+            string option = Console.ReadLine();
+            return option;
+        }
+            public void RunAccountOptions(string accountNo, Admin foundAdmin, BankAccount bankAccount)
             {
-                Console.Write("\nplease choose an option: ");
-                string input = Console.ReadLine();
-                if (input == "1")
+                var exit = 1;
+                while (exit == 1)
                 {
-                    Console.Write("please input desired amount to be deposited: ");
-                    string checkAmount = Console.ReadLine();
-                    decimal amount;
-                    var date = DateTime.Now;
-                    if (Decimal.TryParse(checkAmount, out amount))
+                    string option = CustomerOperationsMenu(accountNo, foundAdmin, bankAccount);
+                    if (option == "1")
                     {
-                        Console.Write("Leave a note for transaction: ");
-                        string note = Console.ReadLine();
-                        bankAccount.MakeDeposit(amount, date, note);
+                        Console.Write("please input desired amount to be deposited: ");
+                        string checkAmount = Console.ReadLine();
+                        decimal amount;
+                        var date = DateTime.Now;
+                        if (Decimal.TryParse(checkAmount, out amount))
+                        {
+                            Console.Write("Leave a note for transaction: ");
+                            string note = Console.ReadLine();
+                            bankAccount.MakeDeposit(amount, date, note);
+                        }
+                        else
+                            Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
+
                     }
-                    else
-                        Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
-                    
-                }
-                else if (input == "2")
-                {
-                    
+                    else if (option == "2")
+                    {
+
                         Console.Write("please input desired amount to be withdrawn: ");
                         string checkAmount = Console.ReadLine();
                         decimal amount;
@@ -165,42 +205,44 @@ namespace BankingSystem.Users
                         }
                         else
                             Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
-                    
-                }
-                else if (input == "3")
-                {
-                    Console.WriteLine($"\nCheck Account Balance");
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
-                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
-                }
-                else if (input == "4")
-                {
-                    BankAccountDetails(bankAccount);
-                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
-                }
-                else if (input == "5")
-                {
-                    Console.WriteLine("\nAccount Transactions");
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine(bankAccount.GetAccountHistory());
-                    customerOperationsMenu(accountNo, foundAdmin, bankAccount);
-                }
-                else if (input == "6")
-                {
-                    exit = true;
+
+                    }
+                    else if (option == "3")
+                    {
+                        Console.WriteLine($"\nCheck Account Balance");
+                        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                        Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
+                    }
+                    else if (option == "4")
+                    {
+                        BankAccountDetails(bankAccount);
+                    }
+                    else if (option == "5")
+                    {
+                        Console.WriteLine("\nAccount Transactions");
+                        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                        Console.WriteLine(bankAccount.GetAccountHistory());
+                    }
+                    else if (option == "6")
+                    {
+                        Console.Write("Please enter new First Name: ");
+                        bankAccount.FirstName = Console.ReadLine();
+                        Console.Write("Please enter new Last Name: ");
+                        bankAccount.LastName = Console.ReadLine();
+                        Console.Write("Please enter new Address: ");
+                        bankAccount.Address = Console.ReadLine();
 
                 }
-            } while (exit != true);
+                    else if (option == "7")
+                    {
+                        exit = 0;
+
+                    }
+
+                }
 
 
-
+            }
         }
 
-
     }
-
-
-
-
-}

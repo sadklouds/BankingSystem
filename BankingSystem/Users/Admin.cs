@@ -8,17 +8,14 @@ namespace BankingSystem.Users
 {
     public class Admin
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Address { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
-        public bool AdminRights { get; set; }
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string Address { get; private set; }
+        public string UserName { get; private set; }
+        public string Password { get; private set; }
+        public bool AdminRights { get; private set; }
 
-        public Admin(string firstName, string lastName, string address, string userName, string Password) : this(firstName, lastName, address, userName, Password, true)
-        {
-
-        }
+        
 
         public Admin(string firstName, string lastName, string address, string userName, string password, bool adminRights)
         {
@@ -30,12 +27,21 @@ namespace BankingSystem.Users
             AdminRights = adminRights;
         }
 
-        public void DisplayAdminDetails()
-        {
-            
-            Console.WriteLine($"\nFirst name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nUsername: \t{UserName}\nPassword: \t{Password}\nAdmin rights: \t{AdminRights}");
-        }
-    }
+        BankingLogic bankingLogic = new BankingLogic();
 
+        
+        public void EditAdminDetails(Admin foundAdmin)
+        {
+                Console.Write("Please enter new First Name: ");
+                foundAdmin.FirstName = Console.ReadLine();
+                Console.Write("Please enter new Last Name: ");
+                foundAdmin.LastName = Console.ReadLine();
+                Console.Write("Please enter new Address: ");
+                foundAdmin.Address = Console.ReadLine();
+        }
+
+
+        
+    }
 
 }

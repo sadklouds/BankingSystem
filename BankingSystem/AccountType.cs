@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BankingSystem
 {
-    public enum AccountType
+    public enum TypeOfAccount
     {
         Classic,
         Savings,
