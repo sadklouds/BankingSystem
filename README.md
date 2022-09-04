@@ -33,9 +33,12 @@ Key: TBI = To Be Implemented
   information;
 
   o Total number of customers in the system
+  
   o The sum of all money the customers currently have in their bank account.
+  
   o Using individual account balance, the report should calculate the sum of
   interest rate payable to all accounts for one year, note, if customers have
   different account types, their rates will vary.
+  
   o Total amount of overdrafts currently taken by all customers.
   
