@@ -11,7 +11,7 @@ namespace BankingSystem
     public class BankingLogic
     {
          List<Admin> admins = new List<Admin>();
-         List<BankAccount> accounts = new List<BankAccount>();
+         static List<BankAccount> accounts = new List<BankAccount>();
 
         public void LoadBankData()
         {
@@ -39,45 +39,6 @@ namespace BankingSystem
 
         }
 
-        public void TransferFunds()
-        {
-            Console.Write("Please enter sender account no: ");
-            string senderAccountNo = Console.ReadLine();
-            BankAccount foundSenderAccount = SearchSenderByAccountNo(senderAccountNo);
-            if (foundSenderAccount != null)
-            {
-                Console.Write("please input desired amount to be Withdrawn: ");
-                string checkAmount = Console.ReadLine();
-                decimal amount;
-                var date = DateTime.Now;
-                if (Decimal.TryParse(checkAmount, out amount))
-                {
-                    Console.Write("Leave a note for transaction: ");
-                    string note = Console.ReadLine();
-                    foundSenderAccount.MakeWithdrawal(amount, date, note);
-                    if (foundSenderAccount.Balance - amount < foundSenderAccount.OverdraftLimit() || amount < 0)
-                    {
-                        Console.WriteLine("\n Will be over overdraw limit");
-                    }
-                    else if (foundSenderAccount.Balance - amount > foundSenderAccount.OverdraftLimit())
-                    {
-                        Console.Write("Please enter reciver account no: ");
-                        string accountNo = Console.ReadLine();
-                        BankAccount foundAccount = SearchBankAccountByAccountNo(accountNo);
-                        if (foundAccount != null)
-                        {
-
-                            foundAccount.MakeDeposit(amount, date, note);
-                        }
-                    }
-                }
-                else
-                    Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
-            }
-
-
-
-        }
 
         public string LoginMenu()
         {
@@ -172,7 +133,7 @@ namespace BankingSystem
         }
 
 
-        public BankAccount SearchSenderByAccountNo(string senderAccountNo)
+        static public BankAccount SearchSenderByAccountNo(string senderAccountNo)
         {
             BankAccount foundSenderAccount = accounts.Find(oAccount => oAccount.AccountNo == (senderAccountNo));
             if (foundSenderAccount == null)
@@ -212,10 +173,9 @@ namespace BankingSystem
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("1: Customer Account Operations");
             Console.WriteLine("2: Display all customer account details");
-            Console.WriteLine("3: Transfer funds between accounts");
-            Console.WriteLine("4: View All Admins");
-            Console.WriteLine("5: Edit admin own name and address");
-            Console.WriteLine("6: Delete BankAccount");
+            Console.WriteLine("3: View All Admins");
+            Console.WriteLine("4: Edit admin own name and address");
+            Console.WriteLine("5: Delete BankAccount");
             Console.WriteLine("0: Logout");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.Write("Please select an option: ");
@@ -244,19 +204,16 @@ namespace BankingSystem
                 {
                     AllBankAccountDetails();
                 }
+                
                 else if (option == "3")
-                {
-                    TransferFunds();
-                }
-                else if (option == "4")
                 {
                     AllDisplayAdminDetails();
                 }
-                else if (option == "5")
+                else if (option == "4")
                 {
                     foundAdmin.EditAdminDetails(foundAdmin);
                 }
-                else if (option == "6")
+                else if (option == "5")
                 {
                     DeleteBankAccount(foundAdmin);
                 }

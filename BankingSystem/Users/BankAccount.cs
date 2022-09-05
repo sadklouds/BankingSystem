@@ -43,7 +43,7 @@ namespace BankingSystem.Users
             Address = address;
             AccountNo = accountNumberSeed.ToString();
             accountNumberSeed++; ;
-            MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
+            MakeDeposit(initialBalance, "Initial balance");
             
         }
 
@@ -60,6 +60,17 @@ namespace BankingSystem.Users
             return overdraft;
         }
 
+        public virtual bool OverdraftLimitReached(BankAccount bankAccount)
+        {
+            bool overdraftReached = false;
+            decimal overdraft = OverdraftLimit();
+            if(bankAccount.Balance < overdraft)
+            {
+                overdraftReached = true;
+            }
+            return overdraftReached;
+        }
+
         public virtual void PayableIntrest()
         {
             
@@ -67,18 +78,21 @@ namespace BankingSystem.Users
 
         public bool OverdraftTrue()
         {
-            bool inOverDraft = Balance < 0 ? true: false;
+            bool inOverDraft = Balance < 0m ? true: false;
             return inOverDraft;
         }
 
-        public void MakeDeposit(decimal amount, DateTime date, string note)
+        public void MakeDeposit(decimal amount, string note)
         {
             try
             {
-                if (amount < 0)
+                if (amount < 0m)
                 {
                     throw new ArgumentOutOfRangeException(nameof(amount));
                 }
+                //Console.WriteLine("\nDeposit succussful");
+                var date = DateTime.Now;
+                
                 var deposit = new Transaction(amount, date, note);
                 allTransactions.Add(deposit);
             }
@@ -89,41 +103,78 @@ namespace BankingSystem.Users
             }
         }
 
-        public void MakeWithdrawal(decimal amount, DateTime date, string note)
+        public bool MakeWithdrawal(decimal amount, string note)
         {
-            
+            bool withdraw = false;
             try
             {
-                if (amount <= 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(amount), "Amount of withdrawal must be positive");
+                
+                DateTime date = DateTime.Now;
+                    if (amount <= 0m)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(amount));
+                        return withdraw;
+                    }
+                    if (Balance - amount < OverdraftLimit())
+                    {
+                        Console.WriteLine();
+                        throw new InvalidOperationException();
+                        return withdraw;    
+
                 }
-                //if (Balance - amount < 0)
-                //{
-                //    throw new InvalidOperationException("Not sufficient funds for this withdrawal");
-                //}
-                if (Balance - amount < OverdraftLimit() )
-                {
-                    throw new InvalidOperationException("Not sufficient funds for this withdrawal exceeds overdraft limit");
+                    else if (Balance - amount >= OverdraftLimit())
+                    {
+                        withdraw = true;
+                        Console.WriteLine("\nWithdrawal succussful");
+                        var withdrawal = new Transaction(-amount, date, note);
+                        allTransactions.Add(withdrawal);
+
                 }
-                if (Balance - amount > OverdraftLimit() )
-                {
-                    var withdrawal = new Transaction(-amount, date, note);
-                    allTransactions.Add(withdrawal);
-                }
+                    
             }
             catch (InvalidOperationException e)
             {
                 Console.WriteLine("\nNot sufficient funds for this withdrawal exceeds overdraft limit");
                 //Console.WriteLine(e.ToString());
+                //return withdraw;
             }
             catch (ArgumentOutOfRangeException e)
             {
                 Console.WriteLine("\nException caught trying to draw negative funds, amount must be positive");
                 //Console.WriteLine(e.ToString());
+                //return withdraw;
             }
+            return withdraw;
         }
 
+        public void TransferMoney(BankAccount bankAccount)
+        {
+            Console.Write("please input desired amount to be Withdrawn: ");
+            string checkAmount = Console.ReadLine();
+            if (Decimal.TryParse(checkAmount, out decimal amount))
+            {
+                Console.Write("Leave a note for transaction: ");
+                string note = Console.ReadLine();
+                if (MakeWithdrawal(amount, note) == true)
+                {
+                    Console.Write("Please enter reciver account no: ");
+                    string accountNo = Console.ReadLine();
+                    BankAccount foundAccount = bankingLogic.SearchBankAccountByAccountNo(accountNo);
+                    if (foundAccount != null)
+                    {
+                        Console.WriteLine(bankAccount.Balance);
+                        Console.WriteLine("\nTransfer succussful");
+                        foundAccount.MakeDeposit(amount, note);
+                    }
+                }
+                else if (MakeWithdrawal(amount, note) == false)
+                {
+                    Console.WriteLine("\nTransfer unuccussful");
+                }
+            }
+            else
+                Console.WriteLine("\nAmount inputted was not a number convertable to decimal");
+        }
 
         public string GetAccountHistory()
         {
@@ -161,7 +212,8 @@ namespace BankingSystem.Users
             Console.WriteLine("4: View Bank Account Details");
             Console.WriteLine("5: View Bank Account Transactions");
             Console.WriteLine("6: Edit Customer details");
-            Console.WriteLine("7: Return ");
+            Console.WriteLine("7: Transfer Money");
+            Console.WriteLine("0: Return ");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.Write("please choose an option: ");
             string option = Console.ReadLine();
@@ -173,71 +225,70 @@ namespace BankingSystem.Users
                 while (exit == 1)
                 {
                     string option = CustomerOperationsMenu(accountNo, foundAdmin, bankAccount);
-                    if (option == "1")
+                if (option == "1")
+                {
+                    Console.Write("please input desired amount to be deposited: ");
+                    string checkAmount = Console.ReadLine();
+                   
+                    if (Decimal.TryParse(checkAmount, out decimal amount))
                     {
-                        Console.Write("please input desired amount to be deposited: ");
-                        string checkAmount = Console.ReadLine();
-                        decimal amount;
-                        var date = DateTime.Now;
-                        if (Decimal.TryParse(checkAmount, out amount))
-                        {
-                            Console.Write("Leave a note for transaction: ");
-                            string note = Console.ReadLine();
-                            bankAccount.MakeDeposit(amount, date, note);
-                        }
-                        else
-                            Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
-
+                        Console.Write("Leave a note for transaction: ");
+                        string note = Console.ReadLine();
+                        bankAccount.MakeDeposit(amount,note);
                     }
-                    else if (option == "2")
-                    {
-
-                        Console.Write("please input desired amount to be withdrawn: ");
-                        string checkAmount = Console.ReadLine();
-                        decimal amount;
-                        var date = DateTime.Now;
-                        if (Decimal.TryParse(checkAmount, out amount))
-                        {
-
-                            Console.Write("Leave a note for transaction: ");
-                            string note = Console.ReadLine();
-                            bankAccount.MakeWithdrawal(amount, date, note);
-                        }
-                        else
-                            Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
-
-                    }
-                    else if (option == "3")
-                    {
-                        Console.WriteLine($"\nCheck Account Balance");
-                        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                        Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
-                    }
-                    else if (option == "4")
-                    {
-                        BankAccountDetails(bankAccount);
-                    }
-                    else if (option == "5")
-                    {
-                        Console.WriteLine("\nAccount Transactions");
-                        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                        Console.WriteLine(bankAccount.GetAccountHistory());
-                    }
-                    else if (option == "6")
-                    {
-                        Console.Write("Please enter new First Name: ");
-                        bankAccount.FirstName = Console.ReadLine();
-                        Console.Write("Please enter new Last Name: ");
-                        bankAccount.LastName = Console.ReadLine();
-                        Console.Write("Please enter new Address: ");
-                        bankAccount.Address = Console.ReadLine();
+                    else
+                        Console.WriteLine("\nAmount inputted was not a number convertable to decimal", amount);
 
                 }
-                    else if (option == "7")
+                else if (option == "2")
+                {
+                    Console.Write("please input desired amount to be Withdrawn: ");
+                    string checkAmount = Console.ReadLine();
+                    if (Decimal.TryParse(checkAmount, out decimal amount))
                     {
-                        exit = 0;
-
+                        Console.Write("Leave a note for transaction: ");
+                        string note = Console.ReadLine();
+                        MakeWithdrawal(amount,note);
                     }
+                    else
+                        Console.WriteLine("\nAmount inputted was not a number convertable to decimal");
+                }
+                else if (option == "3")
+                {
+                    Console.WriteLine($"\nCheck Account Balance");
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.WriteLine($"Account: {bankAccount.FirstName} {bankAccount.LastName}\nBalance: £{bankAccount.Balance}");
+                }
+                else if (option == "4")
+                {
+                    BankAccountDetails(bankAccount);
+                }
+                else if (option == "5")
+                {
+                    Console.WriteLine("\nAccount Transactions");
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.WriteLine(bankAccount.GetAccountHistory());
+                }
+                else if (option == "6")
+                {
+                    Console.Write("Please enter new First Name: ");
+                    bankAccount.FirstName = Console.ReadLine();
+                    Console.Write("Please enter new Last Name: ");
+                    bankAccount.LastName = Console.ReadLine();
+                    Console.Write("Please enter new Address: ");
+                    bankAccount.Address = Console.ReadLine();
+
+                }
+                else if (option == "7")
+                {
+                    TransferMoney(bankAccount);
+
+                }
+                else if (option == "0")
+                {
+                    exit = 0;
+
+                }
 
                 }
 

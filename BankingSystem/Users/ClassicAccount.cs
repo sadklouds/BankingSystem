@@ -16,7 +16,7 @@ namespace BankingSystem.Users
 
         public override decimal OverdraftLimit()
         {
-            decimal overdraft = -200m;
+            decimal overdraft = -250m;
             return overdraft;
         }
 
@@ -26,6 +26,16 @@ namespace BankingSystem.Users
             return accountType;
         }
 
+        public override bool OverdraftLimitReached(BankAccount bankAccount)
+        {
+            bool overdraftReached = false;
+            //decimal overdraft = OverdraftLimit();
+            if (bankAccount.Balance <0)
+            {
+                overdraftReached = true;
+            }
+            return overdraftReached;
+        }
         public override void PayableIntrest()
         {
 
