@@ -12,10 +12,11 @@ namespace BankingSystem
     {
          List<Admin> admins = new List<Admin>();
          List<BankAccount> accounts = new List<BankAccount>();
-         private static string directory = @"C:\VS-Projects\BankingSystem\BankingSystem\BankAccounts\";
-         private static string fileName = "Accounts.txt";
+        //private static string directory = @"C:\VS-Projects\BankingSystem\BankingSystem\BankAccounts\";
+        private static string directory = @"BankAccounts\";
+        private static string fileName = "Accounts.txt";
 
-
+        
 
         public void CheckForExistingAccountsFile()
         {
@@ -23,7 +24,7 @@ namespace BankingSystem
             bool existingFileFound = File.Exists(path);
             if (existingFileFound)
             {
-                Console.WriteLine($"{fileName} exists");
+                Console.WriteLine($"{fileName} has been loaded");
             }
             else if (!Directory.Exists(directory))
             {
@@ -152,6 +153,7 @@ namespace BankingSystem
 
                     case "2":
                         Console.WriteLine("Exiting Bank");
+                        SaveBankAccounts();
                         exit = true;
                         break;
                 }
