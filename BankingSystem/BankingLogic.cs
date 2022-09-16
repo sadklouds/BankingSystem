@@ -11,9 +11,9 @@ namespace BankingSystem
     public class BankingLogic
     {
          List<Admin> admins = new List<Admin>();
-         List<BankAccount> accounts = new List<BankAccount>();
-        //private static string directory = @"C:\VS-Projects\BankingSystem\BankingSystem\BankAccounts\";
-        private static string directory = @"BankAccounts\";
+         static List<BankAccount> accounts = new List<BankAccount>();
+        
+        private static string directory = @"../../../BankAccounts\";
         private static string fileName = "Accounts.txt";
 
         
@@ -219,7 +219,7 @@ namespace BankingSystem
         }
 
 
-        public BankAccount SearchSenderByAccountNo(string senderAccountNo)
+        public static BankAccount SearchSenderByAccountNo(string senderAccountNo)
         {
             BankAccount foundSenderAccount = accounts.Find(oAccount => oAccount.AccountNo == (senderAccountNo));
             if (foundSenderAccount == null)
