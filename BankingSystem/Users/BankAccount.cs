@@ -14,6 +14,8 @@ namespace BankingSystem.Users
         public string Address { get; protected set; }
         public string AccountNo { get;}
 
+        public string AccountType { get;}
+
         public decimal Balance
 
         {
@@ -31,27 +33,23 @@ namespace BankingSystem.Users
        
 
         private static int accountNumberSeed = 1234567890;
-
+        
         BankingLogic bankingLogic = new BankingLogic();
 
         private List<Transaction> allTransactions = new List<Transaction>();
 
-        public BankAccount(string firstName, string lastName, string address, decimal initialBalance)
+        public BankAccount(string firstName, string lastName, string address, decimal initialBalance, string accountType)
         {
             FirstName = firstName;
             LastName = lastName;
             Address = address;
             AccountNo = accountNumberSeed.ToString();
-            accountNumberSeed++; ;
+            accountNumberSeed++;
             MakeDeposit(initialBalance, "Initial balance");
-            
+            AccountType = accountType;
         }
 
-        public virtual string AccountType()
-        {
-            string accountType = "";
-            return accountType;
-        }
+       
 
         public virtual decimal OverdraftLimit()
         {
@@ -195,7 +193,7 @@ namespace BankingSystem.Users
         {
             Console.WriteLine("\nBank Accounts Details");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            Console.WriteLine($"First name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccount Type: \t{AccountType()}\nInOverdraft: \t{OverdraftTrue()}");
+            Console.WriteLine($"First name: \t{FirstName} \nLast name: \t{LastName}\nAddress: \t{Address}\nAccountNo: \t{AccountNo}\nBalance: \t{Balance}\nAccount Type: \t{AccountType}\nInOverdraft: \t{OverdraftTrue()}");
             
         }
 

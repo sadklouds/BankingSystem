@@ -11,32 +11,115 @@ namespace BankingSystem
     public class BankingLogic
     {
          List<Admin> admins = new List<Admin>();
-         static List<BankAccount> accounts = new List<BankAccount>();
+         List<BankAccount> accounts = new List<BankAccount>();
+         private static string directory = @"C:\VS-Projects\BankingSystem\BankingSystem\BankAccounts\";
+         private static string fileName = "Accounts.txt";
 
-        public void LoadBankData()
+
+
+        public void CheckForExistingAccountsFile()
         {
+            string path = $"{directory}{fileName}";
+            bool existingFileFound = File.Exists(path);
+            if (existingFileFound)
+            {
+                Console.WriteLine($"{fileName} exists");
+            }
+            else if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("Directory has been created");
+                Console.ResetColor();
+            }
+        }
+        public void LoadAdminData()
+        {
+            
             var admin1 = new Admin("Grumble", "Test", "Nonya 22 Lane", "19116884", "111", true);
             admins.Add(admin1);
             var admin2 = new Admin("God", "Grid", "Who knows", "111", "111", false);
             admins.Add(admin2);
+        }
 
+        public void LoadAccountData()
+        {
+            CheckForExistingAccountsFile();
+            string path = $"{directory}{fileName}";
             try
             {
-                var account1 = new ClassicAccount("Test", "Test", "Nonya", 0);
-                accounts.Add(account1);
 
-                var account2 = new StudentAccount("Kloud", "Shepard", "Nonya", 100);
-                accounts.Add(account2);
-                
 
-            }
-            catch (ArgumentOutOfRangeException e)
+                if (File.Exists(path))
+                {
+                    List<string> lines = File.ReadAllLines(path).ToList();
+                    foreach (string line in lines)
+                    {
+                        string[] entries = line.Split(',');
+                        string firstName = entries[0];
+                        string lastName = entries[1];
+                        string address = entries[2];
+                        string balanceStr = entries[3];
+                        if (decimal.TryParse(balanceStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal balance))
+                        {
+
+                        }
+                        else
+                        {
+                            Console.WriteLine($"The balance {balanceStr} could not be converted to decimal in accounts.txt");
+                            Environment.Exit(0);
+                        }
+                        string accountType = entries[4].ToLower();
+
+                        if (entries.Length == 5)
+                        {
+
+                            BankAccount bankAccount = null;
+                            switch (accountType)
+                            {
+                                case "classic":
+                                    accounts.Add(bankAccount = new ClassicAccount(firstName, lastName, address, balance, accountType));
+
+                                    break;
+                                case "student":
+                                    accounts.Add(bankAccount = new StudentAccount(firstName, lastName, address, balance, accountType));
+                                    break;
+                                default:
+                                    Console.WriteLine(" Invalid account type, use either Classic, Student or Savings.");
+                                    break;
+                            }
+                        }
+                        else 
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        
+                    }
+                }
+            } catch (InvalidOperationException) 
             {
-                Console.WriteLine("\n Exception caught creating account with negative balance\n");
-                Console.WriteLine(e.ToString());
-                return;
+                Console.WriteLine("Accounts.txt amount of entries are lower or exceeds 5 per line");
             }
-
+        }
+    
+        public void SaveBankAccounts()
+        {
+            string path = $"{directory}{fileName}";
+            StringBuilder bob = new StringBuilder();
+            foreach (BankAccount accounts in accounts)
+            {
+                bob.Append($"{accounts.FirstName},");
+                bob.Append($"{accounts.LastName},");
+                bob.Append($"{accounts.Address},");
+                bob.Append($"{accounts.Balance},");
+                bob.Append($"{accounts.AccountType}");
+                bob.Append(Environment.NewLine);
+            }
+            File.WriteAllText(path, bob.ToString());
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Saved to accounts.txt succussfully");
+            Console.ResetColor();
         }
 
 
@@ -108,6 +191,7 @@ namespace BankingSystem
             } while (login != true);
 
         }
+        
 
 
         //user search functions 
@@ -133,7 +217,7 @@ namespace BankingSystem
         }
 
 
-        static public BankAccount SearchSenderByAccountNo(string senderAccountNo)
+        public BankAccount SearchSenderByAccountNo(string senderAccountNo)
         {
             BankAccount foundSenderAccount = accounts.Find(oAccount => oAccount.AccountNo == (senderAccountNo));
             if (foundSenderAccount == null)
@@ -176,7 +260,8 @@ namespace BankingSystem
             Console.WriteLine("3: View All Admins");
             Console.WriteLine("4: Edit admin own name and address");
             Console.WriteLine("5: Delete BankAccount");
-            Console.WriteLine("0: Logout");
+            Console.WriteLine("6: Logout");
+            Console.WriteLine("0: Save and Exit System");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.Write("Please select an option: ");
             string option = Console.ReadLine();
@@ -217,10 +302,15 @@ namespace BankingSystem
                 {
                     DeleteBankAccount(foundAdmin);
                 }
-                else if (option == "0")
+                else if (option == "6")
                 {
                     exit = 0;
                     Console.WriteLine("\nLoging out the Banking System");
+                }
+                else if (option == "0")
+                {
+                    SaveBankAccounts();
+                    Environment.Exit(0);
                 }
 
             } while (exit == 1);
@@ -234,7 +324,7 @@ namespace BankingSystem
             Console.WriteLine("Customer Accounts");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             foreach (BankAccount accounts in accounts)
-                Console.WriteLine($"\nFirst name: \t{accounts.FirstName} \nLast name: \t{accounts.LastName}\nAddress: \t{accounts.Address}\nAccountNo: \t{accounts.AccountNo}\nBalance: \t{accounts.Balance}\nAccount Type: \t{accounts.AccountType()}\nIn Overdraft: \t{accounts.OverdraftTrue()}");
+                Console.WriteLine($"\nFirst name: \t{accounts.FirstName} \nLast name: \t{accounts.LastName}\nAddress: \t{accounts.Address}\nAccountNo: \t{accounts.AccountNo}\nBalance: \t{accounts.Balance}\nAccount Type: \t{accounts.AccountType}\nIn Overdraft: \t{accounts.OverdraftTrue()}");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         }
 

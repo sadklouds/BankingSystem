@@ -7,7 +7,8 @@ using BankingSystem;
 
 
 BankingLogic bankingLogic = new BankingLogic();
-bankingLogic.LoadBankData();
+bankingLogic.LoadAdminData();
+bankingLogic.LoadAccountData();
 bankingLogic.RunLoginMenu();
 
 

@@ -9,17 +9,13 @@ namespace BankingSystem.Users
     public class StudentAccount : BankAccount
     {
         
-        private static TypeOfAccount accountType = TypeOfAccount.Classic;
-        public StudentAccount(string firstName, string lastName, string address, decimal initialBalance) : base(firstName, lastName, address, initialBalance)
+       
+        public StudentAccount(string firstName, string lastName, string address, decimal initialBalance, string accountType) : base(firstName, lastName, address, initialBalance, accountType)
         {
            
         }
 
-        public override string AccountType()
-        {
-            string accountType = "Student";
-            return accountType;
-        }
+        
         public override decimal OverdraftLimit()
         {
             decimal overdraft = -200m;

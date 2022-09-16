@@ -9,7 +9,7 @@ namespace BankingSystem.Users
     public class ClassicAccount : BankAccount
     {
         
-        public ClassicAccount(string firstName, string lastName, string address, decimal initialBalance) : base(firstName, lastName, address, initialBalance)
+        public ClassicAccount(string firstName, string lastName, string address, decimal initialBalance, string accountType) : base(firstName, lastName, address, initialBalance, accountType)
         {
              
         }
@@ -20,11 +20,6 @@ namespace BankingSystem.Users
             return overdraft;
         }
 
-        public override string AccountType ()
-        {
-            string accountType = "Classic";
-            return accountType;
-        }
 
         public override bool OverdraftLimitReached(BankAccount bankAccount)
         {
